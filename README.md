@@ -3,12 +3,12 @@
 *Declaration: Content forked form the http://www.codecommit.com/blog/java/interop-between-java-and-scala, only for compare study and record learning experience*
 
 - [Interop Between Java and Scala](#Interop%20Between%20Java%20and%20Scala)
-    - [Classes are Classes](#Classes%20are%20Classes)
-    - [Traits are Interfaces](#Traits%20are%20Interfaces)
-    - [Generics are, well Generics](#Generics%20are,%20well%20Generics)
-    - [Operators are Methods](#Operators%20are%20Methods)
-    - [Odds and Ends](#Odds%20and%20Ends)
-    - [Conclusion](#Conclusion)
+    - [Classes are Classes](#classes-are-classes)
+    - [Traits are Interfaces](#traits-are-interfaces)
+    - [Generics are, well Generics](#generics-are-well-generics)
+    - [Operators are Methods](#operators-are-methods)
+    - [Odds and Ends](#odds-and-ends)
+    - [Conclusion](#conclusion)
 
 Sometimes, the simplest things are the most difficult to explain.  Scala's interoperability with Java is completely unparalleled, even including languages like Groovy which tout their tight integration with the JVM's venerable standard-bearer.  However, despite this fact, there is almost no documentation (aside from chapter 29 in _Programming in Scala_) which shows how this Scala/Java integration works and where it can be used.  So while it may not be the most exciting or theoretically interesting topic, I have taken it upon myself to fill the gap.
 
