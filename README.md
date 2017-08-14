@@ -2,6 +2,13 @@
 
 *Declaration: Content forked form the http://www.codecommit.com/blog/java/interop-between-java-and-scala, only for compare study and record learning experience*
 
+- [Interop Between Java and Scala](#Interop%20Between%20Java%20and%20Scala)
+    - [Classes are Classes](#Classes%20are%20Classes)
+    - [Traits are Interfaces](#Traits%20are%20Interfaces)
+    - [Generics are, well Generics](#Generics%20are,%20well%20Generics)
+    - [Operators are Methods](#Operators%20are%20Methods)
+    - [Odds and Ends](#Odds%20and%20Ends)
+    - [Conclusion](#Conclusion)
 
 Sometimes, the simplest things are the most difficult to explain.  Scala's interoperability with Java is completely unparalleled, even including languages like Groovy which tout their tight integration with the JVM's venerable standard-bearer.  However, despite this fact, there is almost no documentation (aside from chapter 29 in _Programming in Scala_) which shows how this Scala/Java integration works and where it can be used.  So while it may not be the most exciting or theoretically interesting topic, I have taken it upon myself to fill the gap.
 
@@ -201,7 +208,7 @@ There is, however, one little wrinkle that I'm conveniently side-stepping: the `
 
 To be honest, I'm not sure what is the "correct" value to return from `$tag`.  In this case, `0` is just a stub, and I'm guessing a safe one since `StringModel` is the only subtype of `Model`.  Can anyone who knows more about the Scala compiler shed some light on this issue?
 
-### Generics are, well…Generics
+### Generics are, well Generics
 
 Generics are (I think) probably the coolest and most well-done part of Scala's Java interop.  Anyone who has more than a passing familiarity with Scala will know that its type system is significantly more powerful than Java's.  Some of this power comes in the form of its type parameterization, which is vastly superior to Java's generics.  For example, type variance can be handled at declaration-site, rather than only call-site (as in Java):
 
