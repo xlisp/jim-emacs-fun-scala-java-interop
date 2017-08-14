@@ -10,6 +10,7 @@
     - [Odds and Ends](#odds-and-ends)
     - [Conclusion](#conclusion)
     - [Javap反编译](#Javap%E5%8F%8D%E7%BC%96%E8%AF%91)
+    - [Java to Scala cheatsheet](#java-to-scala-cheatsheet)
 
 Sometimes, the simplest things are the most difficult to explain.  Scala's interoperability with Java is completely unparalleled, even including languages like Groovy which tout their tight integration with the JVM's venerable standard-bearer.  However, despite this fact, there is almost no documentation (aside from chapter 29 in _Programming in Scala_) which shows how this Scala/Java integration works and where it can be used.  So while it may not be the most exciting or theoretically interesting topic, I have taken it upon myself to fill the gap.
 
