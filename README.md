@@ -9,6 +9,7 @@
     - [Operators are Methods](#operators-are-methods)
     - [Odds and Ends](#odds-and-ends)
     - [Conclusion](#conclusion)
+    - [Javap反编译](#Javap%E5%8F%8D%E7%BC%96%E8%AF%91)
 
 Sometimes, the simplest things are the most difficult to explain.  Scala's interoperability with Java is completely unparalleled, even including languages like Groovy which tout their tight integration with the JVM's venerable standard-bearer.  However, despite this fact, there is almost no documentation (aside from chapter 29 in _Programming in Scala_) which shows how this Scala/Java integration works and where it can be used.  So while it may not be the most exciting or theoretically interesting topic, I have taken it upon myself to fill the gap.
 
@@ -369,4 +370,1054 @@ This merely provides a pair of delegates, but it does suffice to smooth out the 
 This has been a whirlwind, disjoint tour covering a fairly large slice of information on how to use Scala code from within Java.  For the most part, things are all roses and fairy tales.  Scala classes map precisely onto Java classes, generics work perfectly, and pure-abstract traits correspond directly to Java interfaces.  Other areas where Scala is decidedly more powerful than Java (like operators) do tend to be a bit sticky, but there is _always_ a way to make things work.
 
 If you're considering mixing Scala and Java sources within your project, I hope that this article has smoothed over some of the doubts you may have had regarding its feasibility.  As David Pollack says, Scala is really "just another Java library".  Just stick `scala-library.jar` on your classpath and all of your Scala classes should be readily available within your Java application.  And given how well Scala integrates with Java at the language level, what could be simpler?
+
+### Javap反编译
+
+```bash
+daniel@lal ~ $ javap -classpath /usr/local/scala-2.7.3.final/lib/scala-library.jar scala.Function1$class
+Compiled from "Function1.scala"
+public interface scala.Function1 extends scala.ScalaObject{
+    public abstract scala.Function1 andThen(scala.Function1);
+    public abstract scala.Function1 compose(scala.Function1);
+    public abstract java.lang.String toString();
+    public abstract java.lang.Object apply(java.lang.Object);
+}
+
+daniel@lal ~ $ javap -classpath /usr/local/scala-2.7.3.final/lib/scala-library.jar scala.ScalaObject
+Compiled from "ScalaObject.scala"
+public interface scala.ScalaObject{
+    public abstract int $tag()       throws java.rmi.RemoteException;
+}
+
+daniel@lal ~ $ javap -classpath /usr/local/scala-2.7.3.final/lib/scala-library.jar 'scala.Function1$class'
+Compiled from "Function1.scala"
+public abstract class scala.Function1$class extends java.lang.Object{
+    public static void $init$(scala.Function1);
+    public static scala.Function1 andThen(scala.Function1, scala.Function1);
+    public static scala.Function1 compose(scala.Function1, scala.Function1);
+    public static java.lang.String toString(scala.Function1);
+}
+
+```
+
+# ---------------------------------
+
+# [Java to Scala cheatsheet](http://rea.tech/java-to-scala-cheatsheet/)
+
+We've started some new work in Scala!  Most of the back-end developers in the Residential team have a Java background though,  so we put together this cheatsheet to help get the team started.
+
+Scala does almost everything Java does, plus a whole lot of useful functional stuff.  There's a direct analog in Scala for almost everything in Java.
+
+Keep in mind though, real idiomatic Scala needs a bit more than just Java semantics — there's lots of really powerful and useful functional features and idioms that you can learn as you go.
+
+```java
+    @interface Foo {
+    
+    }
+```
+```scala
+    trait Foo extends StaticAnnotation {
+    
+    }
+```
+* There is no special syntax for annotation definitions.
+* An annotation has to extend scala.Annotation, or one of its sub-traits.
+* Scala's compiler will stitch it into the necessary bytecode form for use in Scala or Java.
+
+```java
+    @Foo
+    public class Blah {
+      @Stuff
+      public void doStuff() {}
+    }
+```
+```scala
+    @Foo
+    class Blah {
+      @Stuff
+      def doStuff(): Unit = ()
+    }
+```
+* Same annotation usage syntax.
+* Annotations are not used very often in Scala.
+* The extra power of lambdas, types and implicits means that the extra-linguistic meta-programming that they are required for in Java often doesn't need to happen.
+* Annotations can nest, like in Java.
+
+```java
+    strs[0]
+```
+```scala
+    strs(0)
+```
+* There is no special syntax for arrays.
+* Anything defining an apply() method can use function-like syntax like this.
+
+```java
+    strs[0] = 5
+```
+```scala
+    strs(0) = 5
+```
+* There is no special syntax for arrays.
+* Anything defining an update() method can use assignment syntax like this.
+
+```java
+    String[] strs = new String[] {"a", "b"}
+```
+```scala
+    val strs = Array("a", "b")
+```
+* Arrays don't have privileged syntax; they look the same as other generic collections.
+* Only use them if you need co-location in memory for high performance.
+* Instead of using "new", we are calling the factory function on the Array object.
+* Abstracts over the different kinds of JVM array representations int[], Object[], long[], etc, using black magic.
+
+```java
+    Integer a = 4; // box
+    int a = b; // unbox
+```
+```scala
+    val a: AnyRef = 4 // box
+    val b: Int = a.asInstanceOf[Int] // unbox
+```
+* Autoboxing and unboxing happens automatically and invisibly.
+* See Primitives.
+
+```java
+    public class Point {
+      private final int x, y;
+    
+      static class Builder {
+        int x = 0;
+        int y = 0;
+    
+        public void withX(int x) { 
+          this.x = x; 
+        }
+    
+        public void withY(int y) { 
+          this.y = y 
+        }
+        public Point build() {...}
+      }
+    
+      public int getX() {
+        return x;
+      }
+    
+      public int getY() {
+        return y;
+      }
+      // and on and on and on with more fields
+    }
+```
+```scala
+    class Point(val x: Int = 3, val y = 77)
+    // x = 5, y = 77
+    new Point(x = 5)
+```
+* Scala has named and default parameters.
+* You can use this with regular constructors and factory methods, no need for builders.
+
+```java
+    (Banana)myFruit
+```
+```scala
+    myFruit.asInstanceOf[Banana]
+```
+* Casting doesn't have a special syntax, it is a method.
+* The syntax is deliberately verbose, to discourage casting.
+* Casts are not very idiomatic Scala; mostly the type system should protect you from having to lie to it.
+
+```java
+    public class Gumble {}
+```
+```scala
+    class Gumble
+```
+* Everything is public by default.
+* Don't need braces if there's no content.
+
+```java
+    public class Shoe implements 
+        Shineable, Cobbleable, Wearable {}
+```
+```scala
+    class Shoe extends Shineable 
+        with Cobbleable with Wearable
+```
+* The first thing always says "extends", even if it is a trait.
+* "with" for everything else.
+* This determines the order in which trait mixins are applied.
+
+```java
+    public class Point {
+      private final int x, y;
+    
+      public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+      }
+    
+      public int x() { 
+        return x; 
+      }
+    
+      public int y() { 
+        return y; 
+      }
+    }
+```
+```scala
+    class Point(val x: Int, val y: Int)
+```
+* Adding "val" makes the constructor arg bind to a field of the same name.
+* "Instance variables" are actually hidden; what you call is always an accessor method, that can be overridden.
+
+```java
+    public class Gumble extends Foo {
+      public Gumble(String id) {
+        super(id)
+      }
+    }
+```
+```scala
+    class Gumble(id: String) extends Foo(id)
+```
+* Primary constructor goes in the declaration.
+* Type comes after the identifier.
+
+```java
+    enum Suit {SPADES, HEARTS, CLUBS, DIAMONDS}
+    Suit suit = Suit.SPADES;
+```
+```scala
+    // Algebraic Data Type (ADT)
+    sealed trait Suit
+    case object Spades extends Suit
+    case object Hearts extends Suit
+    case object Clubs extends Suit
+    case object Diamonds extends Suit
+    val suit: Suit = Spades
+    
+    // OR
+    
+    // Enumeration class
+    object Suit2 extends Enumeration {
+      val Spades, Hearts, Clubs, Diamonds = Value
+    }
+    
+    val suit2: Suit2.Value = Suit2.Spades
+```
+* Scala doesn't directly support enums; one of the few things in Java that can't be generated from Scala. People constantly complain about this, but you really don't need them.
+* There are two techniques commonly used; Algebraic Data Types, which are more general and powerful, and the Enumeration mixin, which is less powerful.
+* ADTs are a closed hierarchy of ordinary classes and objects; here we are using top-level objects, because we require no parameters.
+* "case class" and "case object" is syntax sugar that generates fields, hashcode, equals, toString and factory methods. They are ordinary classes/objects that you could otherwise have defined by hand. Here, "case object" just gives us a toString() the same as the identifier name.
+* The Enumeration mixin defines a type Value; the Value method creates a new value of type Value.
+* Notice that unlike most languages, comma-separated declarations get assigned to every variable in the list, not just the last one.
+* Usually you would prefer ADTs; the Enumeration mixin is quite limited in usage.
+
+```java
+    obj1.equals(obj2);
+    primitive1 == primitive1;
+```
+```scala
+    any1 == any2
+```
+* == is a method that everything supports.
+* It calls the equals() method on objects.
+* It checks value equality on primitives.
+* It is null-safe.
+
+```java
+    obj1 == obj2
+```
+```scala
+    obj1 eq obj2
+```
+* eq is a method that all objects (any class under AnyRef) support.
+* Reference equality is not usually used in functional programming.
+* If the reference provides object identity, then it implies that the state of the object mutates over time.
+* In FP, identity is usually modelled outside of object instances.
+
+```java
+    public interface FooFactory {
+      public Foo createFoo();
+    }
+```
+```scala
+    () => Foo
+```
+* I mean, it's really just a function, isn't it.
+
+```java
+    for (int i=0; i < max; i++) {
+      doStuff(i);
+    }
+```
+```scala
+    // Low level equivalent
+    var i = 0
+    while (i < max) {
+      doStuff(i)
+      i += 1
+    }
+    
+    // Index counting equivalent
+    for (i <- 0 until max) {
+      doStuff(i)
+    }
+    
+    // Obtain index alongside item with combinators
+    for ((item, i) <- myList.zipWithIndex) {
+      doStuff(item, i)
+    }
+```
+* There's no direct equivalent to the low-level for loop; you would need to use while.
+* No one has used this in Java since 1999 anyway.
+* You can use a for-comprehension if you just want run through a range.
+* start.to(includedEnd).by(step) and start.until(excludedEnd).by(step) are the most common methods used to create range objects.
+* The "to" and "until" methods are supported on all numeric types.
+* The range is a collection, although it doesn't explicitly store all of the numbers in range, of course.
+* At the cost of an extra iteration, the most concise way to obtain the index alongside elements in a sequence is zipWithIndex.
+* "0 until max" is the same as "0.until(max)". Any instance method can be written in operator style.
+
+```java
+    List reversedNames = new ArrayList();
+    for (String n : nameList) {
+      reversedNames.add(n.reverse());
+    }
+    return reversedNames;
+```
+```scala
+    for (n <- nameList) yield n.reverse
+    
+    // which is sugar for:
+    
+    nameList.map(_.reverse)
+```
+* Using "yield" with a for-comprehension makes it a functional statement, returning the same kind of structure with the transformation applied.
+* This is syntax sugar for calling the shown map() function.
+* The underscore represents the first argument of a closure; it is shorthand for (n => n.reverse).
+
+```java
+    for (String n : nameList) {
+      System.out.println("Hi, " + n);
+    }
+```
+```scala
+    for (n <- nameList) {
+      println("Hi, " + n)
+    }
+    
+    // which is sugar for:
+    
+    nameList.foreach(n => println("Hi, " + n)
+```
+* The for-comprehension syntax is just sugar for the foreach() method here. Anything that defines a foreach method can use a for-comprehension in this way.
+* The imperative for-comprehension yields () (Unit) as a value.
+
+```java
+    public class Foo {
+      public  void blah(X x, Y y) {}
+    }
+```
+```scala
+    class Foo[A, B] {
+      def blah[X, Y](x: X, y: Y): Unit = {}
+    }
+```
+* Same concept, although Scala uses square brackets.
+
+```java
+    public class Muncher {
+      public void munch(S munchable) {...}
+    }
+```
+```scala
+    class Muncher[S >: Snack] {
+      def munch(munchable: S): Unit
+    }
+```
+* Uses the special >: operator instead of "super".
+
+```java
+    public class Vendor {
+      public S vend() {...}
+    }
+```
+```scala
+    class Vendor[S <: Snack] {
+      def vend(): S = ...
+    }
+```
+* Uses the special <: operator instead of "extends".
+
+```java
+    BurlapSack wildcardSack = new BurlapSack();
+    BurlapSack rawSack = new BurlapSack();
+```
+```scala
+    val wildcardList: Seq[_] = Vector.empty
+```
+* Underscore indicates a wildcard.
+* There are no raw types in Scala; you always have to fill in type parameters.
+
+```java
+    Muncher = new Muncher();
+```
+```scala
+    val muncher: Muncher[_ >: Snack] = new Muncher[Food]
+```
+```java
+    Vendor vendor = 
+        new Vendor();
+```
+```scala
+    val vendor: Vendor[_ <: Snack] = 
+        new Vendor[OverpricedCookies]
+```
+```java
+    if (cond) {
+      doStuff();
+    }
+    else {
+      otherStuff();
+    }
+```
+```scala
+    if (cond) {
+      doStuff()
+    }
+    else {
+      otherStuff()
+    }
+```
+```java
+    cond ? stuff : otherStuff
+```
+```scala
+    if (cond) stuff else otherStuff
+```
+* Why have two syntaxes for the same thing? There's no ternary operator, because it's redundant.
+
+```java
+    import com.baz.Baz;
+    import com.foo.Frunk;
+    import com.foo.Bazzle;
+    import com.foo.bar.*;
+```
+```scala
+    import com.baz.Baz
+    import com.foo.{Frunk, Bazzle}
+    import com.foo.bar._
+```
+* You can stack multiple imports from the same package in braces.
+* Underscore means "all" here.
+
+```java
+    int i;
+    i++;
+    ++i;
+    i--;
+    --i;
+```
+```scala
+    var i: Int
+    i += 1
+    i -= 1
+```
+* There are no special pre/post/inc/dec operators.
+* \+ is a normal method on Int.
+* Assignment statements have the value of () (Unit), so you can't embed assignments in other expressions and conditional tests.
+* The = part is assignment shorthand that can apply to any method with a symbolic name  
+Therefore it all desugars as: 
+    
+        i = i.+(1)
+    i = i.-(1)
+
+```java
+    foo instanceof Banana
+```
+```scala
+    foo.isInstanceOf[Banana]
+```
+* Uses a method rather than special syntax.
+* Similar to cast method: asInstanceOf[Type].
+
+```java
+    public class Foo {
+      private String muta = "m";
+    
+      public String getMuta() {
+        return muta;
+      }
+    
+      public void setMuta(String m) {
+        muta = m;
+      }
+    }
+```
+```scala
+    class Foo {
+      var muta = "m"
+    }
+    
+    // OR fully written out: 
+    
+    class Foo {
+      private var mVar = "m"
+    
+      def muta: String = mVar
+    
+      def muta_=(m: String): Unit = { mVar = m }
+    }
+```
+* Just writing "var" in the class body will define a field, with an accessor and mutator for that name.
+* You can write the accessors/mutators in full; a method name that ends in "_=" will get natural "a.b = c" assignment syntax sugar.
+* Both of these classes do the same thing.
+* Generally prefer immutable vals to mutable vars.
+
+```java
+    public class Foo {
+      private final int fixed = 5;
+    
+      public int getFixed() {
+        return fixed;
+      }
+    }
+```
+```scala
+    class Foo {
+      val fixed = 5
+    }
+```
+* "fixed" is the name of an accessor method. The actual field is hidden.
+
+```java
+    public interface Edible {
+      public abstract boolean containsBones();
+      public abstract void eatWith(Drink drink);
+    }
+```
+```scala
+    trait Edible {
+      def containsBones: Boolean
+      def eatWith(drink: Drink): Unit
+    }
+```
+* Traits are like interfaces, except they can contain code that gets mixed with the class and other traits.
+* If there is no "=" assignment, then the def/var/val is abstract.
+* "Unit" is the same as "void".
+
+```java
+    List list;
+    new ArrayList(list).add("newvalue");
+    new ArrayList(list).insert(0, "newvalue")
+```
+```scala
+      val list: Seq[String]
+      list :+ "newvalue"
+      "newvalue" +: list
+```
+* The +: method means "prepend".
+* The :+ method means "append".
+* Methods ending in : associate to the right, so the +: call is actually the same as list.+:("newvalue")
+* These return new lists, without modifying the old ones.
+* They reuse as much of the old structure as possible.
+
+```java
+    List list;
+    list.add("newvalue")
+    list.insert(0, "newvalue")
+```
+```scala
+    val list: scala.collection.mutable.Buffer[String]
+    list += "newvalue"
+    list.insert(0, "newvalue")
+```
+* Mostly you won't need the mutable stuff. Use the default immutable Seqs instead, unless there's a compelling performance or clarity argument.
+* Similar syntax to Java, but with a += method instead of "add".
+
+```java
+    List list1;
+    new ArrayList(list1).addAll(list2);
+```
+```scala
+    val list: Seq[Foo]
+    list1 ++ list2
+```
+* ++ is an ordinary method, returning a new list.
+* Neither old list gets modified.
+* The resulting list reuses as much of the old structures as it can.
+
+```java
+    List list1;
+    list1.addAll(list2)
+```
+```scala
+    val list1: scala.collection.mutable.Buffer[Foo]
+    list1 ++= list2
+```
+* Mostly you won't need the mutable stuff. Use the default immutable Seqs instead, unless there's a compelling performance or clarity argument.
+* The ++= method mutates the first list.
+
+```java
+    ??? You could use Guava, or the crappy unmodifiable wrappers.
+```
+```scala
+    val list: Seq[String] = Vector("hello", "world")
+```
+* Seq is the default trait for ordered sequences.
+* Vector is the best default implementation. It has practically constant time access and modification, yet is totally immutable, and shares most of its structure.
+* The companion object of Vector (as with all of the collections) defines an apply() factory method, which will return an efficient implementation for the size you have chosen.
+
+```java
+    List list = new ArrayList();
+    list.add("hello");
+    list.add("world");
+```
+```scala
+    import scala.collection.mutable
+    val list: mutable.Seq[String] = mutable.ArrayBuffer("hello", "world")
+```
+* Mostly you won't need the mutable stuff. Use the default immutable Seqs instead, unless there's a compelling performance or clarity argument.
+* The ArrayBuffer companion object defines an apply() factory method, which produces an appropriate instance of ArrayBuffer.
+* Way better type inference.
+
+```java
+    List list;
+    list.get(0);
+```
+```scala
+    val list: Seq[String]
+    list(0)
+```
+* Seq is the default trait for ordered sequences.
+* Seq[A]s actually extend (Int => A), so they not only look like functions, but are functions.
+
+```java
+    List list;
+    list.set(3, "newvalue")
+```
+```scala
+    val list: scala.collection.mutable.Buffer[String]
+    list(3) = "newvalue"
+```
+* Mostly you won't need the mutable stuff. Use the default immutable Seqs instead, unless there's a compelling performance or clarity argument.
+* Mutable Seqs define an update() method, that enables the special assignment syntax sugar.
+
+```java
+    List oldList;
+    new ArrayList(oldList).set(3, "newvalue");
+```
+```scala
+    val oldList: Seq[String]
+    oldList.updated(3, "newvalue")
+```
+* Returns a new immutable Seq without modifying the old one.
+* Reuses as much of the old structure as it can.
+
+```java
+    Map map;
+    map.get(key);
+```
+```scala
+    val map: Map[Key, Value]
+    map(key)
+```
+* Maps define an apply() function, which allows them to have a function-like access syntax.
+* Immutable Map[K,V]s actually extend (K => V), so they not only look like functions, but are functions.
+
+```java
+    Map map;
+    new HashMap(map1).putAll(map2);
+```
+```scala
+    val map1: Map[Key, Value]
+    map1 ++ map2
+```
+* Maps are integrated into Scala's collection hierarchy as a Iterable[(K, V)].
+* ++ is the concatenation method defined on all immutable collections.
+* ++ returns a new map, without changing the old ones. Reuses as much of the old maps in memory as possible.
+
+```java
+    Map map1;
+    map1.putAll(map2)
+```
+```scala
+    val map1: scala.collection.mutable.Map[Key, Value]
+    map1 ++= map2
+```
+* Mostly you won't need the mutable stuff. Use the default immutable Maps instead, unless there's a compelling performance or clarity argument.
+* Maps are integrated into Scala's collection hierarchy as a Iterable[(K, V)].
+* The ++= is a regular method.
+
+```java
+    ??? You could use Guava, or the crappy unmodifiable wrappers.
+```
+```scala
+    val map = Map("foo" -> 5, "bar" -> 6)
+```
+* Maps are immutable by default, and have efficient access, "insertion", "update", and "remove" characteristics.
+* Everything is implicitly extended with the -> method. It's actually a regular method that you could have written, that returns a pair.
+* The Map companion object defines an apply() factory method, that produces the most efficient implementation for the map size you've defined.
+* Way better type inference.
+
+```java
+    Map map = new HashMap();
+    map.put("Potatoes", 5);
+    map.put("Bananas", 7);
+```
+```scala
+    import scala.collection.mutable
+    val map = mutable.Map("Potatoes" -> 5, "Bananas" -> 7)
+```
+* Mostly you won't need the mutable stuff. Use the default immutable Maps instead, unless there's a compelling performance or clarity argument.
+* Everything is implicitly extended with the -> method. It's actually a regular method that you could have written, that returns a pair.
+* The HashMap companion object defines an apply() factory method, that produces the most efficient implementation for the map size you've defined so far.
+* Way better type inference.
+
+```java
+    Map map;
+    new HashMap(map).put(key, value)
+```
+```scala
+    val map: Map[Key, Value]
+    map + (key, value)
+```
+* The + method returns a new map, without modifying the old one. This is very efficient, and will reuse most of the memory representation of the old one.
+* ("foo", 44) is syntax sugar for a new Tuple2[String, Int]("foo", 44). Other length tuples have equivalent syntax.
+* The inserted pair could also be produced with the -> method: "foo" -> 44\. -> is an extension method provided on everything.
+
+```java
+    Map map;
+    map.put(key, value);
+```
+```scala
+    val map: scala.collection.mutable.Map[Key, Value]
+    map += (key, value)
+```
+```java
+    Map map;
+    map.put(key, value);
+```
+```scala
+    val map: scala.collection.mutable.Map[Key, Value]
+    map(key) = value
+```
+* Mostly you won't need the mutable stuff. Use the default immutable Maps instead, unless there's a compelling performance or clarity argument.
+* Mutable maps define an update() method, which allows them to have this special assignment syntax sugar.
+
+```java
+    public String myMethod(int arg1, boolean arg2) { 
+      return "foo"; 
+    }
+```
+```scala
+    def myMethod(arg1: Int, arg2: Boolean): String = "foo"
+```
+* Methods are introduced with "def".
+* Return type comes after the method
+* "=" marks the implementation
+
+```java
+    abstract int doStuff(int blah);
+```
+```scala
+    def doStuff(blah: Int): Int
+```
+* If there's no definition provided with "=", then it's automatically abstract.
+* It's there for Java interop, but don't use it. See "Optional value".
+
+```java
+    String missing = null;
+    String gotIt = "value";
+```
+```scala
+    val missing: Option[String] = None
+    val gotIt: Option[String] = Some("value")
+```
+* Option is what you want. Some(x) indicates a value, None indicates its absence.
+* You can actually use "null", but don't, ever. It's just there for Java interop.
+* Option gets treated like a 0- or 1-length collection, and has all the same powerful combinators that collections do, like map, filter, flatMap, and foreach.
+
+```java
+    foo == null ? "nope" : "got " + foo;
+```
+```scala
+    foo.map("got " + _).getOrElse("nope")
+```
+* "map" and "getOrElse" are regular methods on Option.
+* The "_" indicates the first arg of a lambda. Shorthand for (x => "got " + x).
+
+```java
+    if (foo != null) {
+      System.out.println("got " + foo)
+    }
+    else {
+      System.out.println("nope")
+    }
+```
+```scala
+    foo match {
+      case Some(f) => println("got " + f)
+      case None => println("nope")
+    }
+```
+* Pattern matching provides a convenient way to dispatch on the optional case.
+
+```java
+    package blah;
+```
+```scala
+    package blah
+```
+```java
+    int i = 5;
+    boolean b = true;
+    char c = 'c';
+    long L = 55L;
+    short s = 3;
+    byte x = 1;
+    double d = 3.0;
+    float f = 5.0f;
+```
+```scala
+    val i: Int = 5
+    val b: Boolean = true
+    val c: Char = 'c'
+    val L: Long = 55L
+    val s: Short = 3
+    val x: Byte = 1
+    val d: Double = 3.0
+    val f: Float = 5.0f
+```
+* The type system is unified; everything, including primitives is a subtype of Any.
+* Autoboxing and unboxing happens automatically and invisibly.
+* All primitives are conceptually objects and support several instance methods.
+* If possible, they will compile to efficient primitive JVM values.
+* Int, Boolean, Char, etc are not keywords — they are class names.
+
+```java
+    System.out.println("Hello!")
+```
+```scala
+    println("Hello!")
+```
+* This is defined in scala.Predef, which automatically gets imported.
+
+```java
+    public  T pretendReified(Class token);
+    
+    Banana b = pretendReified(Banana.class)
+```
+```scala
+    def pretendReified[T: ClassTag](): T
+    // which is syntax sugar for:
+    def pretendReified[T](implicit token: ClassTag[T])
+    
+    val b = pretendReified[Banana]
+```
+* We can get around the lack of reified types with a runtime type token, like in Java.
+* If an implicit ClassTag[T] is required, the compiler will insert it; no need to manually provide one.
+* The [A : Foo] syntax is sugar for requiring an implicit parameter of type Foo[A].
+
+```java
+    public enum Singleton { INSTANCE }
+```
+```scala
+    object Singleton
+```
+* Scala has top-level singleton objects.
+* These are used as a superior alternative to statics.
+* They can mix in traits, extend classes, and include any functionality that classes or traits do.
+* "Singleton" here is the name of the value; if you want to refer to its type, you can say Singleton.type. In fact, you get the singleton type of of any fixed value with the .type syntax.
+
+```java
+    public class Foo {
+      public static Foo createFoo(String stuff) {
+        return new MysteryFoo(stuff);
+      }
+    }
+    Foo f = Foo.createFoo("stuff");
+```
+```scala
+    object Foo {
+      def apply(stuff: String): Foo = new MysteryFoo(stuff)
+    }
+    
+    class Foo
+    val f: Foo = Foo("stuff")
+```
+* The most common idiom for static factory methods is an apply() method on the companion object.
+* All the collections follow this idiom.
+* All case classes follow this idiom.
+* apply() methods allow syntax sugar where the receiver object can be called like a function.
+
+```java
+    public class Statics {
+      public static final int SPIDER_LEGS = 8;
+    
+      public static int getHumanLegs() {
+        return 2;
+      }
+    }
+    int n = Statics.SPIDER_LEGS;
+```
+```scala
+    object Statics {
+      val SpiderLegs = 8
+      def humanLegs = 2
+    }
+    class Statics
+    val n = Statics.SpiderLegs
+```
+* There is no such thing as static in Scala.
+* You can define a top-level object with the same name as your class; this is called a "companion object", and so you can get the same static access syntax as Java.
+* There are only two namespaces, values and types. The object is a value, the class is a type; that's why they can have the same name.
+* The object can extend classes and apply mixins, so you can abstract and reuse the functionality much better.
+* The all-capitals syntax is not typically used, because it doesn't really make sense to differentiate them; they are all really instance accessor methods.
+
+```java
+    public interface TaxStrategy {
+      public int calculateTax(Citizen c);
+    }
+    
+    public void calcTax(TaxStrategy strat) {
+      int totalTax = 0;
+    
+      for (Citizen c : citizens) {
+        totalTax += strat.calculateTax(c);
+      }
+      return totalTax;
+    }
+```
+```scala
+    def calcTax(f: Citizen => Int) = citizens.map(f).sum
+```
+* This is what functions are for.
+* These are the kind of silly concepts that don't need to exist in your codebase if you have lambdas and function types.
+
+```java
+    "foo " + something
+```
+```scala
+    "foo " + something
+    s"foo ${something}"
+```
+* Same + syntax as Java.
+* You can also use the interpolation syntax, by putting an "s" before the string literal, and using the $ sign in the string.
+
+```java
+    Object value;
+    try {
+      value = calculateValue();
+    } catch (SomeException e) {
+      value = backupValue;
+    }
+```
+```scala
+    value = try {
+      calculateValue()
+    } catch {
+      case e: SomeException => backupValue
+    }
+```
+* Like everything else, try/catches are expressions, and always evaluate to a value.
+* The "catch" part expects a regular PartialFunction[Throwable, _]. It allows much more flexible matching than Java's special syntax. The most common way to provide it is using the pattern-matching block syntax, which is a partial function literal.
+
+```java
+    try {
+      doStuff();
+    }
+    catch (BlahException e) {
+      e.printStackTrace();
+    }
+    catch (FooException e) {
+      e.printStackTrace();
+    }
+    finally {
+      System.out.println("done");
+    }
+```
+```scala
+    try {
+      doStuff()
+    }
+    catch {
+      case e: BlahException => e.printStackTrace()
+      case e: FooException => e.printStackTrace()
+    }
+    finally {
+      println("done")
+    }
+```
+* Almost the same syntax.
+* The "catch" part expects a regular PartialFunction[Throwable, _]. It allows much more flexible matching than Java's special syntax. The most common way to provide it is using the pattern-matching block syntax, which is a partial function literal.
+
+```java
+    public void stuff(String... names) {}
+    
+    // Varargs call
+    stuff("foo", "bar")
+    
+    // Directly call with String[]
+    stuff(new String[] {"foo", "bar"})
+```
+```scala
+    def stuff(names: String*)
+    
+    // Varargs call
+    stuff("foo", "bar")
+    
+    // Directly call with Seq[String]
+    stuff(Seq("foo", "bar"): _*)
+```
+* Declaring a varargs method uses * instead of …
+* When directly calling with a pre-built Seq of things, you need to ascribe the value with the special type of _*. This helps avoid unpleasantness and confusion.
+* Actually, any value can be ascribed with a type, which is like an upcast in the compiler, eg (4: Any), which has a compile-time type of Any, and a runtime type of Int.
+
+```java
+    void doStuff() {}
+```
+```scala
+    def doStuff(): Unit = ()
+```
+* Everything is a value in Scala.
+* void methods actually return a useless primitive value (), called Unit.
+* It compiles to void on the JVM.
+* Assignments, while loops and imperative for-comprehensions also have the value of Unit.
+
+```java
+    while (someCondition()) {
+      doStuff();
+    }
+```
+```scala
+    while (someCondition) {
+      doStuff()
+    }
+    
+    // OR
+    
+    @tailrec
+    def whileLoop(): Unit = {
+      if (someCondition) {
+        doStuff()
+        whileLoop()
+      }
+    }
+```
+* The while loop is inherently imperative, and has a value of () (Unit).
+* This is a low level looping construct, the same as Java's. It is usually only used for high-performance tuning when the various map, flatMap, and filter combinators would be too slow or memory hungry. eg, painting a grid of pixels on screen.
+* A tail-recursive function will compile to the same efficient bytecode as a while loop.
+* The @tailrec annotation is not required, but makes the compiler guarantee that the recursion will reuse the same space on the stack.
+* These are the only ways to simulate Java's low-level for(;;) loop.
+
+This entry was posted in [Engineering][1] by [Ken Scambler][2]. Bookmark the [permalink][3]. 
+
+[1]: http://rea.tech/engineering/
+[2]: http://rea.tech/author/ken-scamblerrea-group-com/
+[3]:  "Permalink to Java to Scala cheatsheet"
 
