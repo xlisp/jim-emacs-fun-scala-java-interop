@@ -11,6 +11,7 @@
     - [Conclusion](#conclusion)
     - [Javap反编译](#Javap%E5%8F%8D%E7%BC%96%E8%AF%91)
     - [Java to Scala cheatsheet](#java-to-scala-cheatsheet)
+    - [From Scala](#from-scala)
 
 Sometimes, the simplest things are the most difficult to explain.  Scala's interoperability with Java is completely unparalleled, even including languages like Groovy which tout their tight integration with the JVM's venerable standard-bearer.  However, despite this fact, there is almost no documentation (aside from chapter 29 in _Programming in Scala_) which shows how this Scala/Java integration works and where it can be used.  So while it may not be the most exciting or theoretically interesting topic, I have taken it upon myself to fill the gap.
 
@@ -1582,3 +1583,16 @@ This entry was posted in [Engineering][1] by [Ken Scambler][2]. Bookmark the [pe
 [2]: http://rea.tech/author/ken-scamblerrea-group-com/
 [3]:  "Permalink to Java to Scala cheatsheet"
 
+### From scala
+对比学习别人Clojure封装Scala: https://github.com/clojure-spark/from-scala
+```clojure
+[t6/from-scala "0.2.1"]
+[org.scala-lang/scala-library "2.11.6"]
+
+(:require [t6.from-scala.core :refer ($ $$) :as $] ...)
+
+($ ($ List & 1 2 3 4)
+   reduce
+   ($/function [x y] (+ x y))))
+;; => 10
+```
